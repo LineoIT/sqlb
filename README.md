@@ -3,7 +3,7 @@
 ### Install
 
 ```bash
-go get -u github.com/lineoit/sqlb
+go get -u github.com/LineoIT/sqlb
 ```
 
 ### Example
@@ -12,7 +12,7 @@ go get -u github.com/lineoit/sqlb
 package main
 
 import (
-	"github.com/lineoit/sqlb"
+	"github.com/LineoIT/sqlb"
 )
 
 func main() {
