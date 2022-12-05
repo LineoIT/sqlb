@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lineoit/sqlb"
+	"github.com/LineoIT/sqlb"
 )
 
 func main() {
