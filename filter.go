@@ -58,6 +58,8 @@ func (q *FilterQuery) Or(column string, op string, value ...interface{}) *Filter
 			q.in(column, "or", value...)
 		case "is null":
 			q.isNUll(column, "or")
+		case "is not null":
+			q.isNotNUll(column, "or")
 		case "between":
 			q.between(column, "or", value[0], value[0])
 		default:
@@ -100,6 +102,8 @@ func (q *FilterQuery) clause(clause string, column string, op string, value ...i
 		q.in(column, "", value...)
 	case "is null":
 		q.isNUll(column, "")
+	case "is not null":
+		q.isNotNUll(column, "")
 	case "between":
 		q.between(column, "", value[0], value[0])
 	default:
@@ -145,6 +149,15 @@ func (q *FilterQuery) isNUll(column string, logic string) {
 		q.Stmt += fmt.Sprintf(" %s %s is null", q.currentTag, column)
 	}
 }
+
+func (q *FilterQuery) isNotNUll(column string, logic string) {
+	if strings.Count(q.Stmt, q.currentTag) > 0 {
+		q.Stmt += fmt.Sprintf(" %s %s is not null", logic, column)
+	} else {
+		q.Stmt += fmt.Sprintf(" %s %s is not null", q.currentTag, column)
+	}
+}
+
 
 func (q *FilterQuery) Debug() string {
 	return Debug(q.Stmt, q.args...)
