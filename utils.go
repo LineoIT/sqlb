@@ -3,6 +3,7 @@ package sqlb
 import (
 	"fmt"
 	"strings"
+	"reflect"
 )
 
 type ValueFunc struct {
@@ -63,4 +64,20 @@ func Debug(query string, args ...interface{}) string {
 		s = strings.Replace(s, fmt.Sprintf("$%d", k+1), fmt.Sprint(v), -1)
 	}
 	return s
+}
+
+func mergeSliceValue(arr []any) []any {
+	var list []any
+	for _, t := range arr {
+		switch reflect.TypeOf(t).Kind() {
+		case reflect.Slice:
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				list = append(list, s.Index(i).Interface())
+			}
+		default:
+			list = append(list, t)
+		}
+	}
+	return list
 }

@@ -131,7 +131,7 @@ func (q *FilterQuery) in(column string, logic string, values ...any) {
 	} else {
 		q.Stmt += fmt.Sprintf(" %s %s in (", q.currentTag, column)
 	}
-
+	values = mergeSliceValue(values)
 	for k, v := range values {
 		q.Stmt += fmt.Sprintf("$%d", len(q.args)+1)
 		if k < len(values)-1 {
@@ -158,6 +158,10 @@ func (q *FilterQuery) isNotNUll(column string, logic string) {
 	}
 }
 
+func (q *FilterQuery) Raw(raw string) *FilterQuery {
+	q.Stmt += raw
+	return q
+}
 
 func (q *FilterQuery) Debug() string {
 	return Debug(q.Stmt, q.args...)
