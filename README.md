@@ -1,4 +1,4 @@
-# Go light SQL q
+# Go SQL builder
 
 ## Install
 
