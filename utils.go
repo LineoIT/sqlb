@@ -2,40 +2,9 @@ package sqlb
 
 import (
 	"fmt"
-	"strings"
 	"reflect"
+	"strings"
 )
-
-type ValueFunc struct {
-	value       any
-	alternative any
-	fun         string
-	cast        string
-}
-
-func Coalesce(value any, alternative any, cast ...string) ValueFunc {
-	v := ValueFunc{
-		value:       value,
-		fun:         "coalesce",
-		alternative: alternative,
-	}
-	if len(cast) > 0 {
-		v.cast = cast[0]
-	}
-	return v
-}
-
-func Nullif(value any, alternative any, cast ...string) ValueFunc {
-	v := ValueFunc{
-		value:       value,
-		fun:         "nullif",
-		alternative: alternative,
-	}
-	if len(cast) > 0 {
-		v.cast = cast[0]
-	}
-	return v
-}
 
 func recFuncValue(fv ValueFunc, argIndex int) (string, any) {
 	var castype string

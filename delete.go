@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type UpdateQuery struct {
+type DeleteQuery struct {
 	fields        []string
 	values        []any
 	returns       []string
@@ -17,24 +17,18 @@ type UpdateQuery struct {
 	orderBy, sort string
 }
 
-func Update(table string) *UpdateQuery {
-	return &UpdateQuery{
-		stmt: "update " + table + " set ",
+func Delete(table string) *DeleteQuery {
+	return &DeleteQuery{
+		stmt: "delete from " + table,
 	}
 }
 
-func (q *UpdateQuery) Set(field string, value any) *UpdateQuery {
-	q.values = append(q.values, value)
-	q.fields = append(q.fields, field)
-	return q
-}
-
-func (q *UpdateQuery) Where(column string, value interface{}) *UpdateQuery {
+func (q *DeleteQuery) Where(column string, value interface{}) *DeleteQuery {
 	q.clause(whereVar, column, value)
 	return q
 }
 
-func (q *UpdateQuery) Having(column string, value interface{}) *UpdateQuery {
+func (q *DeleteQuery) Having(column string, value interface{}) *DeleteQuery {
 	if q.currentTag == havingVar || q.currentTag == groupByVar || strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
 		q.clause(havingVar, column, value)
 		return q
@@ -43,7 +37,7 @@ func (q *UpdateQuery) Having(column string, value interface{}) *UpdateQuery {
 	return q
 }
 
-func (q *UpdateQuery) Or(column string, value interface{}) *UpdateQuery {
+func (q *DeleteQuery) Or(column string, value interface{}) *DeleteQuery {
 	if q.currentTag == whereVar || q.currentTag == havingVar {
 		q.clauseWrapper("or", column, value)
 		return q
@@ -52,7 +46,7 @@ func (q *UpdateQuery) Or(column string, value interface{}) *UpdateQuery {
 	return q
 }
 
-func (q *UpdateQuery) GroupBy(columns ...string) *UpdateQuery {
+func (q *DeleteQuery) GroupBy(columns ...string) *DeleteQuery {
 	s := fmt.Sprintf(" %s %s", groupByVar, strings.Join(columns, ","))
 	if strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
 		q.whereStmt = strings.ReplaceAll(strings.ToLower(q.whereStmt), groupByVar, s+",")
@@ -63,54 +57,54 @@ func (q *UpdateQuery) GroupBy(columns ...string) *UpdateQuery {
 	return q
 }
 
-func (q *UpdateQuery) Take(limit, offset int64) *UpdateQuery {
+func (q *DeleteQuery) Take(limit, offset int64) *DeleteQuery {
 	q.limit = limit
 	q.offset = offset
 	return q
 }
 
-func (q *UpdateQuery) Limit(limit int64) *UpdateQuery {
+func (q *DeleteQuery) Limit(limit int64) *DeleteQuery {
 	q.limit = limit
 	return q
 }
 
-func (q *UpdateQuery) Offset(offset int64) *UpdateQuery {
+func (q *DeleteQuery) Offset(offset int64) *DeleteQuery {
 	q.offset = offset
 	return q
 }
 
-func (q *UpdateQuery) OrderBy(orderby ...string) *UpdateQuery {
+func (q *DeleteQuery) OrderBy(orderby ...string) *DeleteQuery {
 	q.orderBy = strings.Join(orderby, ",")
 	return q
 }
 
-func (q *UpdateQuery) Sort(sort string) *UpdateQuery {
+func (q *DeleteQuery) Sort(sort string) *DeleteQuery {
 	q.sort = sort
 	return q
 }
 
-func (q *UpdateQuery) Return(fields ...string) *UpdateQuery {
+func (q *DeleteQuery) Return(fields ...string) *DeleteQuery {
 	q.returns = fields
 	return q
 }
 
-func (q *UpdateQuery) Values() []any {
+func (q *DeleteQuery) Values() []any {
 	return q.values
 }
 
-func (q *UpdateQuery) Stmt() string {
+func (q *DeleteQuery) Stmt() string {
 	return q.stmt
 }
 
-func (q *UpdateQuery) Debug() string {
+func (q *DeleteQuery) Debug() string {
 	return Debug(q.stmt, q.values...)
 }
 
-func (q *UpdateQuery) Error() error {
+func (q *DeleteQuery) Error() error {
 	return q.error
 }
 
-func (q *UpdateQuery) Build() *UpdateQuery {
+func (q *DeleteQuery) Build() *DeleteQuery {
 	for k := range q.fields {
 		funcValue, ok := q.values[k].(ValueFunc)
 		if ok {
@@ -148,10 +142,10 @@ func (q *UpdateQuery) Build() *UpdateQuery {
 	return q
 }
 
-func (q *UpdateQuery) clause(clause string, column string, value ...interface{}) {
+func (q *DeleteQuery) clause(clause string, column string, value ...interface{}) {
 	commonClause(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
 }
 
-func (q *UpdateQuery) clauseWrapper(clauseType string, column string, value ...interface{}) {
+func (q *DeleteQuery) clauseWrapper(clauseType string, column string, value ...interface{}) {
 	clauseWrapper(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
 }

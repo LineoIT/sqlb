@@ -31,3 +31,5 @@ tmp
 .DS_Store
 logs.*
 logs/*
+
+example
