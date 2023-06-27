@@ -94,6 +94,10 @@ func expressionClause(stmt *string, tag string, args *[]interface{}, column, cla
 	} else {
 		*stmt += " " + tag
 	}
-	*stmt += fmt.Sprintf(" %s $%d", column, len(*args)+1)
-	*args = append(*args, value)
+	if value != nil {
+		*stmt += fmt.Sprintf(" %s $%d", column, len(*args)+1)
+		*args = append(*args, value)
+	} else {
+		*stmt += fmt.Sprintf(" %s null", column)
+	}
 }

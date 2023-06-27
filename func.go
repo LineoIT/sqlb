@@ -31,12 +31,12 @@ func Nullif(value any, alternative any, cast ...string) ValueFunc {
 	return v
 }
 
-func Eq[T comparable](field string, value T) (string, T) {
+func Eq(field string, value any) (string, any) {
 	checkValidColumn(field)
 	return field + " =", value
 }
 
-func NotEq[T comparable](field string, value T) (string, T) {
+func NotEq(field string, value any) (string, any) {
 	checkValidColumn(field)
 	return field + " <>", value
 }
@@ -56,22 +56,22 @@ func Between[T comparable](field string, value []T) (string, []T) {
 	return field + " between", value
 }
 
-func IsNull(field string) string {
+func IsNull(field string) (string, any) {
 	checkValidColumn(field)
-	return field + " is null"
+	return field + " is null", nil
 }
 
-func IsNotNull(field string) string {
+func IsNotNull(field string) (string, any) {
 	checkValidColumn(field)
-	return field + " is not null"
+	return field + " is not null", nil
 }
 
-func Is[T comparable](field string, value T) (string, T) {
+func Is(field string, value any) (string, any) {
 	checkValidColumn(field)
 	return field + " is", value
 }
 
-func IsNot[T comparable](field string, value T) (string, T) {
+func IsNot(field string, value any) (string, any) {
 	checkValidColumn(field)
 	return field + " is not", value
 }
