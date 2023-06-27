@@ -143,9 +143,9 @@ func (q *DeleteQuery) Build() *DeleteQuery {
 }
 
 func (q *DeleteQuery) clause(clause string, column string, value ...interface{}) {
-	commonClause(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
+	queryFilter(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
 }
 
 func (q *DeleteQuery) clauseWrapper(clauseType string, column string, value ...interface{}) {
-	clauseWrapper(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
+	filterNormalizer(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
 }

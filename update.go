@@ -149,9 +149,9 @@ func (q *UpdateQuery) Build() *UpdateQuery {
 }
 
 func (q *UpdateQuery) clause(clause string, column string, value ...interface{}) {
-	commonClause(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
+	queryFilter(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
 }
 
 func (q *UpdateQuery) clauseWrapper(clauseType string, column string, value ...interface{}) {
-	clauseWrapper(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
+	filterNormalizer(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
 }

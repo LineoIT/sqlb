@@ -46,7 +46,7 @@ func (q *QueryBuilder) Stmt() string {
 }
 
 func (q *QueryBuilder) Where(column string, value interface{}) *QueryBuilder {
-	q.clause(whereVar, column, value)
+	q.filter(whereVar, column, value)
 	return q
 }
 
@@ -78,7 +78,7 @@ func (q *QueryBuilder) Sort(sort string) *QueryBuilder {
 
 func (q *QueryBuilder) Or(column string, value interface{}) *QueryBuilder {
 	if q.currentTag == whereVar || q.currentTag == havingVar {
-		q.clauseWrapper("or", column, value)
+		q.normalizeFilter("or", column, value)
 		return q
 	}
 	q.error = fmt.Errorf("function `Or` should be called after where or having statement")
@@ -98,7 +98,7 @@ func (q *QueryBuilder) GroupBy(columns ...string) *QueryBuilder {
 
 func (q *QueryBuilder) Having(column string, value interface{}) *QueryBuilder {
 	if q.currentTag == havingVar || q.currentTag == groupByVar || strings.Contains(strings.ToLower(q.stmt), groupByVar) {
-		q.clause(havingVar, column, value)
+		q.filter(havingVar, column, value)
 		return q
 	}
 	q.error = fmt.Errorf("function `Having` should be called after group by statement")
@@ -118,10 +118,10 @@ func (q *QueryBuilder) Error() error {
 	return q.error
 }
 
-func (q *QueryBuilder) clause(clause string, column string, value ...interface{}) {
-	commonClause(&q.error, &q.stmt, &q.currentTag, &q.args, clause, column, value...)
+func (q *QueryBuilder) filter(clause string, column string, value ...interface{}) {
+	queryFilter(&q.error, &q.stmt, &q.currentTag, &q.args, clause, column, value...)
 }
 
-func (q *QueryBuilder) clauseWrapper(clauseType string, column string, value ...interface{}) {
-	clauseWrapper(&q.error, &q.stmt, q.currentTag, &q.args, clauseType, column, value...)
+func (q *QueryBuilder) normalizeFilter(clauseType string, column string, value ...interface{}) {
+	filterNormalizer(&q.error, &q.stmt, q.currentTag, &q.args, clauseType, column, value...)
 }

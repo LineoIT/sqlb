@@ -12,7 +12,7 @@ func TestFilterQuery(t *testing.T) {
 		Where(Between("salary", []float64{5000, 5900})).
 		Or(NotIn("role", []string{"admin", "driver"})).
 		GroupBy("id", "age").
-		Having(NotEq("email", "aaa@ajks.com")).
+		Having(NotEqual("email", "aaa@ajks.com")).
 		Or(NotIn("item", []int{0, 1})).
 		Limit(90).
 		Offset(7).

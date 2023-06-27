@@ -143,8 +143,8 @@ delete from users where id=2 or item not in (0,1);
 
 * Coalesce
 * Nullif
-* Eq
-* NotEq
+* Equal
+* NotEqual
 * In
 * NotIn
 * Between
@@ -155,6 +155,10 @@ delete from users where id=2 or item not in (0,1);
 * Like
 * Ilike
 * Expression
+* Greater
+* GreaterOrEqual
+* Less
+
 
 
 ### Helpers

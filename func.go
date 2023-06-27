@@ -1,5 +1,9 @@
 package sqlb
 
+import (
+	"strings"
+)
+
 type ValueFunc struct {
 	value       any
 	alternative any
@@ -31,65 +35,89 @@ func Nullif(value any, alternative any, cast ...string) ValueFunc {
 	return v
 }
 
-func Eq(field string, value any) (string, any) {
-	checkValidColumn(field)
-	return field + " =", value
-}
-
-func NotEq(field string, value any) (string, any) {
-	checkValidColumn(field)
-	return field + " <>", value
-}
-
 func In[T comparable](field string, value []T) (string, []T) {
-	checkValidColumn(field)
-	return field + " in", value
+	return inTag + field + " in", value
 }
 
 func NotIn[T comparable](field string, value []T) (string, []T) {
-	checkValidColumn(field)
-	return field + " not in", value
+	return inTag + field + " not in", value
 }
 
 func Between[T comparable](field string, value []T) (string, []T) {
-	checkValidColumn(field)
-	return field + " between", value
+	return betweenTag + field + " between", value
 }
 
 func IsNull(field string) (string, any) {
-	checkValidColumn(field)
-	return field + " is null", nil
+	return nullableTag + field + " is null", nil
 }
 
 func IsNotNull(field string) (string, any) {
-	checkValidColumn(field)
-	return field + " is not null", nil
+	return nullableTag + field + " is not null", nil
 }
 
 func Is(field string, value any) (string, any) {
-	checkValidColumn(field)
-	return field + " is", value
+	if value == nil {
+		return nullableTag + field + " is", value
+	}
+	return literalTag + field + " is", value
 }
 
 func IsNot(field string, value any) (string, any) {
-	checkValidColumn(field)
-	return field + " is not", value
+	if value == nil {
+		return nullableTag + field + " is not", value
+	}
+	return literalTag + field + " is not", value
 }
 
-func Ilike[T comparable](field string, value T) (string, T) {
-	checkValidColumn(field)
-	return field + " ilike", value
+func Ilike(field string, value any) (string, any) {
+	return literalTag + field + " ilike", value
 }
 
 func Like[T comparable](field string, value T) (string, T) {
-	checkValidColumn(field)
-	return field + " like", value
+	return literalTag + field + " like", value
 }
 
-func Expression[T comparable](field string, exp string, value T) (string, T) {
-	checkValidColumn(field)
-	if !containsOperationSymbol(exp) {
-		panic(exp + " is not allowed character")
+func Equal(field string, value any) (string, any) {
+	return literalTag + field + " =", value
+}
+
+func NotEqual(field string, value any) (string, any) {
+	return literalTag + field + " <>", value
+}
+
+func Greater(field string, value any) (string, any) {
+	return literalTag + field + " >", value
+}
+
+func GreaterOrEqual(field string, value any) (string, any) {
+	return literalTag + field + " >=", value
+}
+
+func LessOrEqual(field string, value any) (string, any) {
+	return literalTag + field + " <=", value
+}
+
+func Less(field string, value any) (string, any) {
+	return literalTag + field + " <", value
+}
+
+func Expression(field string, exp string, value any) (string, any) {
+	var tag string
+	switch strings.ToLower(exp) {
+	case "is", "is not":
+		if value == nil {
+			tag = nullableTag
+		} else {
+			tag = literalTag
+		}
+	case "is null", "is not null":
+		tag = nullableTag
+	case "between":
+		tag = betweenTag
+	case "in", "not in":
+		tag = inTag
+	default:
+		tag = literalTag
 	}
-	return field + " " + exp, value
+	return tag + field + " " + exp, value
 }
