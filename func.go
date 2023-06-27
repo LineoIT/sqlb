@@ -93,9 +93,3 @@ func Expression[T comparable](field string, exp string, value T) (string, T) {
 	}
 	return field + " " + exp, value
 }
-
-func checkValidColumn(field string) {
-	if !isAllowedColumnName(field) {
-		panic(field + " is not allowed character")
-	}
-}
