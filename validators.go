@@ -27,7 +27,7 @@ func isExpressionClause(column string) bool {
 
 // Pattern to match alphanumeric characters and underscore
 func isAllowedColumnName(str string) bool {
-	regex := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_:]*[a-zA-Z0-9]$`)
+	regex := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:]*[a-zA-Z0-9]$`)
 	return regex.MatchString(str)
 }
 

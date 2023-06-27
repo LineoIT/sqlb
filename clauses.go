@@ -21,10 +21,8 @@ func commonClause(err *error, stmt *string, tag *string, args *[]interface{}, cl
 func clauseWrapper(err *error, stmt *string, tag string, args *[]interface{}, clauseType string, column string, value ...interface{}) {
 	if isInclusingClause(column) {
 		rangeClause(stmt, tag, args, column, clauseType, value...)
-		// q.rangeClause(column, clauseType, value...)
 	} else if isNullableClause(column) {
 		nullableClause(stmt, tag, column, clauseType)
-		//	q.nullableClause(column, clauseType)
 	} else if isIntervalClause(column) {
 		if len(value) > 0 {
 			if reflect.TypeOf(value[0]).Kind() == reflect.Slice {
@@ -33,23 +31,19 @@ func clauseWrapper(err *error, stmt *string, tag string, args *[]interface{}, cl
 					fromValue := s.Index(0).Interface()
 					toValue := s.Index(1).Interface()
 					between(stmt, tag, args, column, clauseType, fromValue, toValue)
-					// q.between(column, clauseType, fromValue, toValue)
 				}
 			} else if len(value) > 1 {
 				between(stmt, tag, args, column, clauseType, value[0], value[1])
-				// q.between(column, clauseType, value[0], value[1])
 			}
 		}
 	} else if isExpressionClause(column) {
 		expressionClause(stmt, tag, args, column, clauseType, value[0])
-		//q.expressionClause(column, clauseType, value[0])
 	} else if isAllowedColumnName(column) {
-		// q._Stmt += fmt.Sprintf(" %s %s=$%d", clauseType, column, len(q.args)+1)
 		*stmt += fmt.Sprintf(" %s %s=$%d", clauseType, column, len(*args)+1)
-		//q.args = append(q.args, value[0])
 		*args = append(*args, value[0])
 	} else {
-		*err = fmt.Errorf("expression is not allowed")
+		*stmt += fmt.Sprintf(" %s %s $%d", clauseType, column, len(*args)+1)
+		*args = append(*args, value[0])
 	}
 }
 
