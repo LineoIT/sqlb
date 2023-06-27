@@ -26,13 +26,13 @@ func isExpressionClause(column string) bool {
 }
 
 // Pattern to match alphanumeric characters and underscore
-func isAllowedColumnName(str string) bool {
+func isStrictFieldName(str string) bool {
 	regex := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:]*[a-zA-Z0-9]$`)
 	return regex.MatchString(str)
 }
 
 // Pattern to match allowed characters
-func isAllowedExpression(str string) bool {
+func containsOperationSymbol(str string) bool {
 	regex := regexp.MustCompile(`^[<!=>]+$`)
 	return regex.MatchString(str)
 }
@@ -40,13 +40,15 @@ func isAllowedExpression(str string) bool {
 func isValidColumnExpression(str string) bool {
 	words := strings.Fields(str)
 	if len(words) == 2 {
-		return isAllowedColumnName(words[0]) && isAllowedExpression(words[1])
+		//return isAllowedColumnName(words[0]) && isAllowedExpression(words[1])
+		return containsOperationSymbol(words[1])
+
 	}
 	return false
 }
 
 func checkValidColumn(field string) {
-	if !isAllowedColumnName(field) {
-		panic(field + " is not allowed character")
-	}
+	// if !isAllowedColumnName(field) {
+	// 	panic(field + " is not allowed character")
+	// }
 }

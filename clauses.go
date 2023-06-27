@@ -38,7 +38,7 @@ func clauseWrapper(err *error, stmt *string, tag string, args *[]interface{}, cl
 		}
 	} else if isExpressionClause(column) {
 		expressionClause(stmt, tag, args, column, clauseType, value[0])
-	} else if isAllowedColumnName(column) {
+	} else if !containsOperationSymbol(column) {
 		*stmt += fmt.Sprintf(" %s %s=$%d", clauseType, column, len(*args)+1)
 		*args = append(*args, value[0])
 	} else {

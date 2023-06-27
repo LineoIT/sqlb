@@ -88,7 +88,7 @@ func Like[T comparable](field string, value T) (string, T) {
 
 func Expression[T comparable](field string, exp string, value T) (string, T) {
 	checkValidColumn(field)
-	if !isAllowedExpression(exp) {
+	if !containsOperationSymbol(exp) {
 		panic(exp + " is not allowed character")
 	}
 	return field + " " + exp, value
