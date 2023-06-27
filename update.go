@@ -6,11 +6,15 @@ import (
 )
 
 type UpdateQuery struct {
-	fields  []string
-	values  []any
-	returns []string
-	stmt    string
-	clause  string
+	fields        []string
+	values        []any
+	returns       []string
+	stmt          string
+	whereStmt     string
+	currentTag    string
+	error         error
+	limit, offset int64
+	orderBy, sort string
 }
 
 func Update(table string) *UpdateQuery {
@@ -25,14 +29,63 @@ func (q *UpdateQuery) Set(field string, value any) *UpdateQuery {
 	return q
 }
 
-func (q *UpdateQuery) Where(column string, op string, value any) *UpdateQuery {
-	if strings.Count(q.clause, "where") > 0 {
-		q.clause += " and"
-	} else {
-		q.clause += " where"
+func (q *UpdateQuery) Where(column string, value interface{}) *UpdateQuery {
+	q.clause(whereVar, column, value)
+	return q
+}
+
+func (q *UpdateQuery) Having(column string, value interface{}) *UpdateQuery {
+	if q.currentTag == havingVar || q.currentTag == groupByVar || strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
+		q.clause(havingVar, column, value)
+		return q
 	}
-	q.clause += fmt.Sprintf(" %s %s $%d", column, op, len(q.values)+1)
-	q.values = append(q.values, value)
+	q.error = fmt.Errorf("function `Having` should be called after group by statement")
+	return q
+}
+
+func (q *UpdateQuery) Or(column string, value interface{}) *UpdateQuery {
+	if q.currentTag == whereVar || q.currentTag == havingVar {
+		q.clauseWrapper("or", column, value)
+		return q
+	}
+	q.error = fmt.Errorf("function `Or` should be called after where or having statement")
+	return q
+}
+
+func (q *UpdateQuery) GroupBy(columns ...string) *UpdateQuery {
+	s := fmt.Sprintf(" %s %s", groupByVar, strings.Join(columns, ","))
+	if strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
+		q.whereStmt = strings.ReplaceAll(strings.ToLower(q.whereStmt), groupByVar, s+",")
+	} else {
+		q.whereStmt += s
+	}
+	q.currentTag = groupByVar
+	return q
+}
+
+func (q *UpdateQuery) Take(limit, offset int64) *UpdateQuery {
+	q.limit = limit
+	q.offset = offset
+	return q
+}
+
+func (q *UpdateQuery) Limit(limit int64) *UpdateQuery {
+	q.limit = limit
+	return q
+}
+
+func (q *UpdateQuery) Offset(offset int64) *UpdateQuery {
+	q.offset = offset
+	return q
+}
+
+func (q *UpdateQuery) OrderBy(orderby ...string) *UpdateQuery {
+	q.orderBy = strings.Join(orderby, ",")
+	return q
+}
+
+func (q *UpdateQuery) Sort(sort string) *UpdateQuery {
+	q.sort = sort
 	return q
 }
 
@@ -43,6 +96,18 @@ func (q *UpdateQuery) Return(fields ...string) *UpdateQuery {
 
 func (q *UpdateQuery) Values() []any {
 	return q.values
+}
+
+func (q *UpdateQuery) Stmt() string {
+	return q.stmt
+}
+
+func (q *UpdateQuery) Debug() string {
+	return Debug(q.stmt, q.values...)
+}
+
+func (q *UpdateQuery) Error() error {
+	return q.error
 }
 
 func (q *UpdateQuery) Build() *UpdateQuery {
@@ -59,19 +124,34 @@ func (q *UpdateQuery) Build() *UpdateQuery {
 			q.stmt += ","
 		}
 	}
-	if q.clause != "" {
-		q.stmt += " " + q.clause
+
+	if q.whereStmt != "" {
+		q.stmt += " " + q.whereStmt
 	}
+
+	if q.orderBy != "" {
+		q.stmt += fmt.Sprintf(" order by %s", q.orderBy)
+		if strings.ToLower(q.sort) == "desc" {
+			q.stmt += " " + q.sort
+		}
+	}
+	if q.limit > 0 {
+		q.stmt += fmt.Sprintf(` limit %d`, q.limit)
+	}
+	if q.offset > 0 {
+		q.stmt += fmt.Sprintf(` offset %d`, q.offset)
+	}
+
 	if len(q.returns) > 0 {
-		q.stmt += fmt.Sprintf(" returning %s", strings.Join(q.returns, ","))
+		q.stmt += fmt.Sprintf(" returning %s;", strings.Join(q.returns, ","))
 	}
 	return q
 }
 
-func (q *UpdateQuery) Stmt() string {
-	return q.stmt
+func (q *UpdateQuery) clause(clause string, column string, value ...interface{}) {
+	commonClause(&q.error, &q.whereStmt, &q.currentTag, &q.values, clause, column, value...)
 }
 
-func (q *UpdateQuery) Debug() string {
-	return Debug(q.stmt, q.values...)
+func (q *UpdateQuery) clauseWrapper(clauseType string, column string, value ...interface{}) {
+	clauseWrapper(&q.error, &q.whereStmt, q.currentTag, &q.values, clauseType, column, value...)
 }
