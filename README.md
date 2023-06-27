@@ -112,3 +112,52 @@ q := sqlb.Delete("users").
 # output
 delete from users where id=2 or item not in (0,1);
 ```
+
+
+### Base Functions
+
+* Select
+* From
+* SQL
+* Build
+* Stmt
+* Error
+* Args
+
+
+
+### Clause Functions
+
+* Where
+* Or
+* Having
+* GroupBy
+* OrderBy
+* Offset
+* Limit
+* Sort
+* Take
+* Raw
+
+### Expression functions
+
+* Coalesce
+* Nullif
+* Eq
+* NotEq
+* In
+* NotIn
+* Between
+* IsNull
+* IsNotNull
+* Is
+* IsNot
+* Like
+* Ilike
+* Expression
+
+
+### Helpers
+
+* Debug
+* CleanSQL
