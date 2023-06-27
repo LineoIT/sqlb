@@ -71,10 +71,10 @@ select * from users where age in (76,80) or email aaa@ajks.com and salary betwee
 ### Insertion
 
 ```go
-q := Insert("users").Value("email", "mail@example.com").
-		Value("age", 10).
-		Return("id").
-		Build()
+q := sqlb.Insert("users").Value("email", "mail@example.com").
+	Value("age", 10).
+	Return("id").
+	Build()
 ```
 
 ```bash
@@ -85,14 +85,30 @@ insert into users (email,age) values(mail@example.com,10) returning id
 ### Update
 
 ```go
-q := Update("users").Set("email", "mail@example.com").
-		Set("age", 10).
-		Where("id", "=", 2).
-		Return("updated_at").
-		Build()
+q := sqlb.Update("users").Set("email", "mail@example.com").
+	Set("age", 10).
+	Where("id", 2).
+	Or(sqlb.NotIn("item", []int{0, 1})).
+	Return("updated_at").
+	Build()
 ```
 
 ```bash
 # output
-update users set email=mail@example.com,age=10 where id = 2 returning updated_at
+update users set email=mail@example.com,age=10 where id=2 or item not in (0,1) returning updated_at;
+```
+
+
+### Delete
+
+```go
+q := sqlb.Delete("users").
+	Where("id", 2).
+	Or(sqlb.NotIn("item", []int{0, 1})).
+	Build()
+```
+
+```bash
+# output
+delete from users where id=2 or item not in (0,1);
 ```
