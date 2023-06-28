@@ -32,8 +32,9 @@ func (q *QueryBuilder) Build() *QueryBuilder {
 		q.stmt += fmt.Sprintf(` limit %d`, q.limit)
 	}
 	if q.offset > 0 {
-		q.stmt += fmt.Sprintf(` offset %d;`, q.offset)
+		q.stmt += fmt.Sprintf(` offset %d`, q.offset)
 	}
+	q.stmt += ";"
 	return q
 }
 

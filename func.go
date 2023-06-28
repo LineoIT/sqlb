@@ -57,14 +57,14 @@ func IsNotNull(field string) (string, any) {
 
 func Is(field string, value any) (string, any) {
 	if value == nil {
-		return nullableTag + field + " is", value
+		return nullableTag + field + " is null", nil
 	}
 	return literalTag + field + " is", value
 }
 
 func IsNot(field string, value any) (string, any) {
 	if value == nil {
-		return nullableTag + field + " is not", value
+		return nullableTag + field + " is not null", nil
 	}
 	return literalTag + field + " is not", value
 }
@@ -104,14 +104,14 @@ func Less(field string, value any) (string, any) {
 func Expression(field string, exp string, value any) (string, any) {
 	var tag string
 	switch strings.ToLower(exp) {
-	case "is", "is not":
-		if value == nil {
-			tag = nullableTag
-		} else {
-			tag = literalTag
-		}
-	case "is null", "is not null":
-		tag = nullableTag
+	case "is":
+		return Is(field, value)
+	case "is not":
+		return IsNot(field, value)
+	case "is null":
+		return IsNull(field)
+	case "is not null":
+		return IsNotNull(field)
 	case "between":
 		tag = betweenTag
 	case "in", "not in":
