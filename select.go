@@ -12,12 +12,12 @@ func Select(columns ...string) *selectQuery {
 	}
 }
 
-func (s *selectQuery) From(table string) *QueryBuilder {
+func (s *selectQuery) From(tables ...string) *QueryBuilder {
 	cols := strings.Join(s.cols, ",")
 	if cols == "" {
 		cols = "*"
 	}
-	baseQuery := "select " + cols + " from " + table
+	baseQuery := "select " + cols + " from " + strings.Join(tables, ",")
 	return &QueryBuilder{
 		stmt: baseQuery,
 		args: make([]interface{}, 0),
