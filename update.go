@@ -35,7 +35,7 @@ func (q *UpdateQuery) Where(column string, value interface{}) *UpdateQuery {
 }
 
 func (q *UpdateQuery) Having(column string, value interface{}) *UpdateQuery {
-	if q.currentTag == havingVar || q.currentTag == groupByVar || strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
+	if q.currentTag == havingVar || q.currentTag == groupByVar || isClauseExist(q.whereStmt, groupByVar) {
 		q.clause(havingVar, column, value)
 		return q
 	}
@@ -54,7 +54,7 @@ func (q *UpdateQuery) Or(column string, value interface{}) *UpdateQuery {
 
 func (q *UpdateQuery) GroupBy(columns ...string) *UpdateQuery {
 	s := fmt.Sprintf(" %s %s", groupByVar, strings.Join(columns, ","))
-	if strings.Contains(strings.ToLower(q.whereStmt), groupByVar) {
+	if isClauseExist(q.whereStmt, groupByVar) {
 		q.whereStmt = strings.ReplaceAll(strings.ToLower(q.whereStmt), groupByVar, s+",")
 	} else {
 		q.whereStmt += s

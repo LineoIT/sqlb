@@ -26,3 +26,8 @@ func hasLiteralTag(col string) bool {
 func hasNullableTag(col string) bool {
 	return strings.HasPrefix(col, nullableTag)
 }
+
+func isClauseExist(stmt, clause string) bool {
+	stmt = strings.ToLower(stmt)
+	return strings.LastIndex(stmt, clause) > strings.LastIndex(stmt, "from")
+}

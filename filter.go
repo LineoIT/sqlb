@@ -7,7 +7,7 @@ import (
 )
 
 func queryFilter(err *error, stmt *string, tag *string, args *[]interface{}, clause string, column string, value ...interface{}) {
-	if strings.Count(*stmt, clause) > 0 {
+	if isClauseExist(*stmt, clause) {
 		*stmt += " and"
 	} else {
 		*stmt += " " + clause

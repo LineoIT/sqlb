@@ -88,7 +88,7 @@ func (q *QueryBuilder) Or(column string, value interface{}) *QueryBuilder {
 
 func (q *QueryBuilder) GroupBy(columns ...string) *QueryBuilder {
 	s := fmt.Sprintf(" %s %s", groupByVar, strings.Join(columns, ","))
-	if strings.Contains(strings.ToLower(q.stmt), groupByVar) {
+	if isClauseExist(q.stmt, groupByVar) {
 		q.stmt = strings.ReplaceAll(strings.ToLower(q.stmt), groupByVar, s+",")
 	} else {
 		q.stmt += s
@@ -98,7 +98,7 @@ func (q *QueryBuilder) GroupBy(columns ...string) *QueryBuilder {
 }
 
 func (q *QueryBuilder) Having(column string, value interface{}) *QueryBuilder {
-	if q.currentTag == havingVar || q.currentTag == groupByVar || strings.Contains(strings.ToLower(q.stmt), groupByVar) {
+	if q.currentTag == havingVar || q.currentTag == groupByVar || isClauseExist(q.stmt, groupByVar) {
 		q.filter(havingVar, column, value)
 		return q
 	}
