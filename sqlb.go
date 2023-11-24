@@ -111,6 +111,28 @@ func (q *QueryBuilder) Raw(raw string) *QueryBuilder {
 	return q
 }
 
+func (q *QueryBuilder) WhereRaw(raw string) *QueryBuilder {
+	if strings.Contains(strings.ToLower(q.stmt), "where") {
+		q.stmt += " and "
+	} else {
+		q.stmt += " where "
+		q.currentTag = whereVar
+	}
+	q.stmt += " " + raw
+	return q
+}
+
+func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
+	if strings.Contains(strings.ToLower(q.stmt), "where") {
+		q.stmt += " or "
+	} else {
+		q.stmt += " where "
+		q.currentTag = whereVar
+	}
+	q.stmt += " " + raw
+	return q
+}
+
 func (q *QueryBuilder) Debug() string {
 	return Debug(q.stmt, q.args...)
 }
