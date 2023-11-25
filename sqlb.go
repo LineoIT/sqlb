@@ -133,36 +133,27 @@ func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
 	return q
 }
 
-func (q *QueryBuilder) Contains(col string, value any) *QueryBuilder {
-	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
-		q.stmt += " and "
-	} else {
-		q.stmt += " where "
-		q.currentTag = whereVar
-	}
-	q.stmt += fmt.Sprintf(" %s ilike '%%%v%%'", col, value)
-	return q
+func (q *QueryBuilder) Contains(col string, value string) *QueryBuilder {
+	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'%%$%d%%'", len(q.args)+1))
 }
 
-func (q *QueryBuilder) StartWith(col string, value any) *QueryBuilder {
-	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
-		q.stmt += " and "
-	} else {
-		q.stmt += " where "
-		q.currentTag = whereVar
-	}
-	q.stmt += fmt.Sprintf(" %s ilike '%%%v'", col, value)
-	return q
+func (q *QueryBuilder) EndWith(col string, value string) *QueryBuilder {
+	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'%%$%d'", len(q.args)+1))
 }
 
-func (q *QueryBuilder) EndWith(col string, value any) *QueryBuilder {
+func (q *QueryBuilder) StartWith(col string, value string) *QueryBuilder {
+	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'$%d%%'", len(q.args)+1))
+}
+
+func (q *QueryBuilder) getIlikeFilter(col string, value string, condition string, rex string) *QueryBuilder {
 	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
-		q.stmt += " and "
+		q.stmt += " " + condition + " "
 	} else {
 		q.stmt += " where "
 		q.currentTag = whereVar
 	}
-	q.stmt += fmt.Sprintf(" %s ilike '%v%%'", col, value)
+	q.stmt += " " + col + " ilike " + rex
+	q.args = append(q.args, value)
 	return q
 }
 
