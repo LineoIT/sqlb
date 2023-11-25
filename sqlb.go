@@ -133,6 +133,39 @@ func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
 	return q
 }
 
+func (q *QueryBuilder) Contains(col string, value any) *QueryBuilder {
+	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
+		q.stmt += " and "
+	} else {
+		q.stmt += " where "
+		q.currentTag = whereVar
+	}
+	q.stmt += fmt.Sprintf(" %s ilike '%%%v%%'", col, value)
+	return q
+}
+
+func (q *QueryBuilder) StartWith(col string, value any) *QueryBuilder {
+	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
+		q.stmt += " and "
+	} else {
+		q.stmt += " where "
+		q.currentTag = whereVar
+	}
+	q.stmt += fmt.Sprintf(" %s ilike '%%%v'", col, value)
+	return q
+}
+
+func (q *QueryBuilder) EndWith(col string, value any) *QueryBuilder {
+	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
+		q.stmt += " and "
+	} else {
+		q.stmt += " where "
+		q.currentTag = whereVar
+	}
+	q.stmt += fmt.Sprintf(" %s ilike '%v%%'", col, value)
+	return q
+}
+
 func (q *QueryBuilder) Debug() string {
 	return Debug(q.stmt, q.args...)
 }

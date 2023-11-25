@@ -75,18 +75,18 @@ func Ilike(field string, value any) (string, any) {
 }
 
 // StartWith : search any start at in table
-func StartWith(field string, value any) (string, any) {
-	return literalTag + field + " ilike", fmt.Sprintf("'%%%v'", value)
+func StartWith(field string, value string) (string, any) {
+	return literalTag + field + " ilike", fmt.Sprintf("'%%%s'", value)
 }
 
 // EndWith : search any end at in table
-func EndWith(field string, value any) (string, any) {
-	return literalTag + field + " ilike", fmt.Sprintf("'%v%%'", value)
+func EndWith(field string, value string) (string, any) {
+	return literalTag + field + " ilike", fmt.Sprintf("'%s%%'", value)
 }
 
 // Contains : search any in table
-func Contains(field string, value any) (string, any) {
-	return literalTag + field + " ilike", fmt.Sprintf("'%%%v%%'", value)
+func Contains(field string, value string) (string, any) {
+	return literalTag + field + " ilike", fmt.Sprintf("'%%%s%%'", value)
 }
 
 func Like[T comparable](field string, value T) (string, T) {
