@@ -134,27 +134,36 @@ func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
 }
 
 func (q *QueryBuilder) Contains(col string, value string) *QueryBuilder {
-	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'%%$%d%%'", len(q.args)+1))
-}
-
-func (q *QueryBuilder) EndWith(col string, value string) *QueryBuilder {
-	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'%%$%d'", len(q.args)+1))
+	c, v := Ilike(col, "%"+value+"%")
+	q.matchAny(c, v)
+	return q
 }
 
 func (q *QueryBuilder) StartWith(col string, value string) *QueryBuilder {
-	return q.getIlikeFilter(col, value, "and", fmt.Sprintf("'$%d%%'", len(q.args)+1))
+	// q.Where(Ilike(col, value+"%"))
+	c, v := Ilike(col, value+"%")
+	q.matchAny(c, v)
+	return q
 }
 
-func (q *QueryBuilder) getIlikeFilter(col string, value string, condition string, rex string) *QueryBuilder {
-	if strings.Contains(strings.ToLower(q.Stmt()), "where") {
-		q.stmt += " " + condition + " "
-	} else {
-		q.stmt += " where "
-		q.currentTag = whereVar
-	}
-	q.stmt += " " + col + " ilike " + rex
-	q.args = append(q.args, value)
+func (q *QueryBuilder) EndWith(col string, value string) *QueryBuilder {
+	// q.Where(Ilike(col, "%"+value))
+	c, v := Ilike(col, "%"+value)
+	q.matchAny(c, v)
 	return q
+}
+
+func (q *QueryBuilder) matchAny(col string, value any) {
+	// orIndex := strings.LastIndex(strings.ToLower(q.stmt), " or ")
+	// andIndex := strings.LastIndex(strings.ToLower(q.stmt), " and ")
+	// if orIndex > andIndex {
+	// 	q.Or(col, value)
+	// } else
+	if q.currentTag == havingVar {
+		q.Having(col, value)
+	} else if q.currentTag == whereVar {
+		q.Where(col, value)
+	}
 }
 
 func (q *QueryBuilder) Debug() string {
