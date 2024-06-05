@@ -11,4 +11,6 @@ const (
 	inTag       = "@in"
 	literalTag  = "@literal"
 	nullableTag = "@nullable"
+	ASC         = "ASC"
+	DESC        = "DESC"
 )

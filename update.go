@@ -131,7 +131,7 @@ func (q *UpdateQuery) Build() *UpdateQuery {
 
 	if q.orderBy != "" {
 		q.stmt += fmt.Sprintf(" order by %s", q.orderBy)
-		if strings.ToLower(q.sort) == "desc" {
+		if strings.ToUpper(q.sort) == DESC {
 			q.stmt += " " + q.sort
 		}
 	}
