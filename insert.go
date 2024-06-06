@@ -12,6 +12,13 @@ type InsertQuery struct {
 	stmt    string
 }
 
+type conflictQuery struct {
+	stmt string
+	// fields []string
+	values []any
+	parent *InsertQuery
+}
+
 func Insert(table string) *InsertQuery {
 	return &InsertQuery{
 		stmt: "insert into " + table,
@@ -31,6 +38,44 @@ func (q *InsertQuery) Return(fields ...string) *InsertQuery {
 
 func (q *InsertQuery) Values() []any {
 	return q.values
+}
+
+func (q *InsertQuery) OnConflict(fields ...string) *conflictQuery {
+	return &conflictQuery{
+		stmt:   fmt.Sprintf("on conflict(%s) do", strings.Join(fields, ",")),
+		parent: q,
+	}
+}
+
+func (q *conflictQuery) Update() *conflictQuery {
+	q.stmt += " update set "
+	return q
+}
+
+func (q *conflictQuery) Nothing() *conflictQuery {
+	q.stmt += " nothing "
+	return q
+}
+
+func (q *conflictQuery) Return(fields ...string) *conflictQuery {
+	q.stmt += " returning " + strings.Join(fields, ",")
+	return q
+}
+
+func (q *conflictQuery) Set(field string, value any) *conflictQuery {
+	if len(q.values) > 0 {
+		q.stmt += ","
+	}
+	q.stmt += fmt.Sprintf("%s=$%d", field, len(q.parent.fields)+len(q.values)+1)
+	q.values = append(q.values, value)
+	return q
+}
+
+func (q *conflictQuery) Build() *InsertQuery {
+	q.parent.Build()
+	q.parent.stmt += " " + q.stmt
+	q.parent.values = append(q.parent.values, q.values...)
+	return q.parent
 }
 
 func (q *InsertQuery) Build() *InsertQuery {
