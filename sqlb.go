@@ -22,6 +22,8 @@ func SQL(baseQuery string) *QueryBuilder {
 }
 
 func (q *QueryBuilder) Build() *QueryBuilder {
+	q.stmt = strings.ReplaceAll(q.stmt, beginScope, "(")
+	q.stmt = strings.ReplaceAll(q.stmt, endScope, ")")
 	if q.orderBy != "" {
 		q.stmt += fmt.Sprintf(" order by %s", q.orderBy)
 		if strings.ToUpper(q.sort) == DESC {
@@ -34,6 +36,7 @@ func (q *QueryBuilder) Build() *QueryBuilder {
 	if q.offset > 0 {
 		q.stmt += fmt.Sprintf(` offset %d`, q.offset)
 	}
+
 	q.stmt += ";"
 	return q
 }
@@ -108,6 +111,16 @@ func (q *QueryBuilder) Having(column string, value interface{}) *QueryBuilder {
 
 func (q *QueryBuilder) Raw(raw string) *QueryBuilder {
 	q.stmt += " " + raw
+	return q
+}
+
+func (q *QueryBuilder) Scope() *QueryBuilder {
+	q.stmt += beginScope
+	return q
+}
+
+func (q *QueryBuilder) EndScope() *QueryBuilder {
+	q.stmt += endScope
 	return q
 }
 

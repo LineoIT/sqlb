@@ -7,8 +7,12 @@ import (
 )
 
 func queryFilter(err *error, stmt *string, tag *string, args *[]interface{}, clause string, column string, value ...interface{}) {
+
 	if isClauseExist(*stmt, clause) {
-		*stmt += " and"
+		if strings.Contains(*stmt, beginScope) {
+			*stmt = strings.ReplaceAll(*stmt, beginScope, "")
+			*stmt += " and ("
+		}
 	} else {
 		*stmt += " " + clause
 	}
@@ -17,6 +21,10 @@ func queryFilter(err *error, stmt *string, tag *string, args *[]interface{}, cla
 }
 
 func filterNormalizer(err *error, stmt *string, tag string, args *[]interface{}, clauseType string, column string, value ...interface{}) {
+	if clauseType != "" && strings.Contains(*stmt, beginScope) {
+		*stmt = strings.ReplaceAll(*stmt, beginScope, "")
+		clauseType = " " + clauseType + " ("
+	}
 	if hasInTag(column) {
 		column = strings.ReplaceAll(column, inTag, "")
 		rangeFilter(stmt, tag, args, column, clauseType, value...)

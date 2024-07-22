@@ -145,6 +145,8 @@ func (q *UpdateQuery) Build() *UpdateQuery {
 	if len(q.returns) > 0 {
 		q.stmt += fmt.Sprintf(" returning %s;", strings.Join(q.returns, ","))
 	}
+	q.stmt = strings.ReplaceAll(q.stmt, beginScope, "(")
+	q.stmt = strings.ReplaceAll(q.stmt, endScope, ")")
 	return q
 }
 

@@ -13,4 +13,6 @@ const (
 	nullableTag = "@nullable"
 	ASC         = "ASC"
 	DESC        = "DESC"
+	beginScope  = "@scope@"
+	endScope    = "@endscope@"
 )
