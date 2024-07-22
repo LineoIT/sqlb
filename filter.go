@@ -12,6 +12,8 @@ func queryFilter(err *error, stmt *string, tag *string, args *[]interface{}, cla
 		if strings.Contains(*stmt, beginScope) {
 			*stmt = strings.ReplaceAll(*stmt, beginScope, "")
 			*stmt += " and ("
+		} else {
+			*stmt += " and "
 		}
 	} else {
 		*stmt += " " + clause
