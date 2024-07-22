@@ -126,7 +126,12 @@ func (q *QueryBuilder) EndScope() *QueryBuilder {
 
 func (q *QueryBuilder) WhereRaw(raw string) *QueryBuilder {
 	if strings.Contains(strings.ToLower(q.stmt), "where") {
-		q.stmt += " and "
+		if strings.Contains(q.stmt, beginScope) {
+			q.stmt = strings.ReplaceAll(q.stmt, beginScope, "")
+			q.stmt += " and ("
+		} else {
+			q.stmt += " and "
+		}
 	} else {
 		q.stmt += " where "
 		q.currentTag = whereVar
@@ -137,7 +142,12 @@ func (q *QueryBuilder) WhereRaw(raw string) *QueryBuilder {
 
 func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
 	if strings.Contains(strings.ToLower(q.stmt), "where") {
-		q.stmt += " or "
+		if strings.Contains(q.stmt, beginScope) {
+			q.stmt = strings.ReplaceAll(q.stmt, beginScope, "")
+			q.stmt += " or ("
+		} else {
+			q.stmt += " or "
+		}
 	} else {
 		q.stmt += " where "
 		q.currentTag = whereVar
