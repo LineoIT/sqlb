@@ -125,7 +125,8 @@ func (q *QueryBuilder) EndScope() *QueryBuilder {
 }
 
 func (q *QueryBuilder) WhereRaw(raw string) *QueryBuilder {
-	if strings.Contains(strings.ToLower(q.stmt), "where") {
+	query := strings.ToLower(q.stmt)
+	if strings.LastIndex(query, "where") > strings.LastIndex(query, "from") {
 		if strings.Contains(q.stmt, beginScope) {
 			q.stmt = strings.ReplaceAll(q.stmt, beginScope, "")
 			q.stmt += " and ("
@@ -141,7 +142,8 @@ func (q *QueryBuilder) WhereRaw(raw string) *QueryBuilder {
 }
 
 func (q *QueryBuilder) OrRaw(raw string) *QueryBuilder {
-	if strings.Contains(strings.ToLower(q.stmt), "where") {
+	query := strings.ToLower(q.stmt)
+	if strings.LastIndex(query, "where") > strings.LastIndex(query, "from") {
 		if strings.Contains(q.stmt, beginScope) {
 			q.stmt = strings.ReplaceAll(q.stmt, beginScope, "")
 			q.stmt += " or ("
