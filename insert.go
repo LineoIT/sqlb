@@ -10,28 +10,46 @@ type InsertQuery struct {
 	values  []any
 	returns []string
 	stmt    string
+	error   error
 }
 
 type conflictQuery struct {
-	stmt string
-	// fields []string
+	stmt   string
 	values []any
 	parent *InsertQuery
 }
 
 func Insert(table string) *InsertQuery {
-	return &InsertQuery{
-		stmt: "insert into " + table,
+	q := &InsertQuery{}
+	if err := validateTableExpr(table); err != nil {
+		q.error = err
+		return q
 	}
+	q.stmt = "insert into " + table
+	return q
 }
 
 func (q *InsertQuery) Value(field string, value any) *InsertQuery {
+	if q.error == nil {
+		if err := validateIdentifier(field); err != nil {
+			q.error = err
+			return q
+		}
+	}
 	q.values = append(q.values, value)
 	q.fields = append(q.fields, field)
 	return q
 }
 
 func (q *InsertQuery) Return(fields ...string) *InsertQuery {
+	for _, f := range fields {
+		if q.error == nil {
+			if err := validateIdentifier(f); err != nil {
+				q.error = err
+				return q
+			}
+		}
+	}
 	q.returns = fields
 	return q
 }
@@ -40,7 +58,18 @@ func (q *InsertQuery) Values() []any {
 	return q.values
 }
 
+func (q *InsertQuery) Error() error {
+	return q.error
+}
+
 func (q *InsertQuery) OnConflict(fields ...string) *conflictQuery {
+	for _, f := range fields {
+		if q.error == nil {
+			if err := validateIdentifier(f); err != nil {
+				q.error = err
+			}
+		}
+	}
 	return &conflictQuery{
 		stmt:   fmt.Sprintf("on conflict(%s) do", strings.Join(fields, ",")),
 		parent: q,
@@ -58,11 +87,25 @@ func (q *conflictQuery) Nothing() *conflictQuery {
 }
 
 func (q *conflictQuery) Return(fields ...string) *conflictQuery {
+	for _, f := range fields {
+		if q.parent.error == nil {
+			if err := validateIdentifier(f); err != nil {
+				q.parent.error = err
+				return q
+			}
+		}
+	}
 	q.stmt += " returning " + strings.Join(fields, ",")
 	return q
 }
 
 func (q *conflictQuery) Set(field string, value any) *conflictQuery {
+	if q.parent.error == nil {
+		if err := validateIdentifier(field); err != nil {
+			q.parent.error = err
+			return q
+		}
+	}
 	if len(q.values) > 0 {
 		q.stmt += ","
 	}
@@ -79,6 +122,9 @@ func (q *conflictQuery) Build() *InsertQuery {
 }
 
 func (q *InsertQuery) Build() *InsertQuery {
+	if q.error != nil {
+		return q
+	}
 	q.stmt += fmt.Sprintf(" (%s) values(", strings.Join(q.fields, ","))
 	for k, v := range q.values {
 		funcValue, ok := v.(ValueFunc)
