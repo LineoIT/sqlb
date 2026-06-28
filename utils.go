@@ -3,8 +3,24 @@ package sqlb
 import (
 	"fmt"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 )
+
+var argPlaceholderRe = regexp.MustCompile(`\$(\d+)`)
+
+// renumberArgs shifts all $N placeholders in stmt by offset.
+// Used when composing sub-queries or CTEs so arg indices don't collide.
+func renumberArgs(stmt string, offset int) string {
+	if offset == 0 {
+		return stmt
+	}
+	return argPlaceholderRe.ReplaceAllStringFunc(stmt, func(match string) string {
+		n, _ := strconv.Atoi(match[1:])
+		return fmt.Sprintf("$%d", n+offset)
+	})
+}
 
 func recFuncValue(fv ValueFunc, argIndex int) (string, any) {
 	var castype string
@@ -29,8 +45,9 @@ func CleanSQL(query string) string {
 
 func Debug(query string, args ...interface{}) string {
 	s := CleanSQL(query)
-	for k, v := range args {
-		s = strings.Replace(s, fmt.Sprintf("$%d", k+1), fmt.Sprint(v), -1)
+	// Substitute from highest index first so $1 never clobbers $10, $11, etc.
+	for k := len(args) - 1; k >= 0; k-- {
+		s = strings.Replace(s, fmt.Sprintf("$%d", k+1), fmt.Sprint(args[k]), -1)
 	}
 	return s
 }

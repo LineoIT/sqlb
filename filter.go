@@ -7,79 +7,78 @@ import (
 )
 
 func queryFilter(err *error, stmt *string, tag *string, args *[]interface{}, clause string, column string, value ...interface{}) {
-
 	if isClauseExist(*stmt, clause) {
 		if strings.Contains(*stmt, beginScope) {
 			*stmt = strings.ReplaceAll(*stmt, beginScope, "")
 			*stmt += " and ("
 		} else {
-			*stmt += " and "
+			*stmt += " and" // no trailing space — sub-filter adds " column"
 		}
 	} else {
-		*stmt += " " + clause
+		*stmt += " " + clause // e.g. " where", " having" — no trailing space
 	}
-	filterNormalizer(err, stmt, *tag, args, "", column, value...)
+	filterNormalizer(err, stmt, args, "", column, value...)
 	*tag = clause
 }
 
-func filterNormalizer(err *error, stmt *string, tag string, args *[]interface{}, clauseType string, column string, value ...interface{}) {
+func filterNormalizer(err *error, stmt *string, args *[]interface{}, clauseType string, column string, value ...interface{}) {
 	if clauseType != "" && strings.Contains(*stmt, beginScope) {
 		*stmt = strings.ReplaceAll(*stmt, beginScope, "")
-		clauseType = " " + clauseType + " ("
+		clauseType = clauseType + " (" // handled by appendCond — no extra space inside paren
 	}
 	if hasInTag(column) {
 		column = strings.ReplaceAll(column, inTag, "")
-		rangeFilter(stmt, tag, args, column, clauseType, value...)
+		rangeFilter(stmt, args, column, clauseType, value...)
 	} else if hasNullableTag(column) {
 		column = strings.ReplaceAll(column, nullableTag, "")
-		nullableFilter(stmt, tag, column, clauseType)
+		nullableFilter(stmt, column, clauseType)
 	} else if hasBetweenTag(column) {
 		column = strings.ReplaceAll(column, betweenTag, "")
 		if len(value) > 0 {
 			if reflect.TypeOf(value[0]).Kind() == reflect.Slice {
 				s := reflect.ValueOf(value[0])
 				if s.Len() > 1 {
-					fromValue := s.Index(0).Interface()
-					toValue := s.Index(1).Interface()
-					betweenFilter(stmt, tag, args, column, clauseType, fromValue, toValue)
+					betweenFilter(stmt, args, column, clauseType, s.Index(0).Interface(), s.Index(1).Interface())
 				}
 			} else if len(value) > 1 {
-				betweenFilter(stmt, tag, args, column, clauseType, value[0], value[1])
+				betweenFilter(stmt, args, column, clauseType, value[0], value[1])
 			}
 		}
 	} else if hasLiteralTag(column) {
 		column = strings.ReplaceAll(column, literalTag, "")
-		expressionFilter(stmt, tag, args, column, clauseType, value[0])
+		expressionFilter(stmt, args, column, clauseType, value[0])
 	} else {
-		*stmt += fmt.Sprintf(" %s %s=$%d", clauseType, column, len(*args)+1)
+		appendCond(stmt, clauseType, fmt.Sprintf("%s=$%d", column, len(*args)+1))
 		*args = append(*args, value[0])
 	}
 }
 
-func betweenFilter(stmt *string, tag string, args *[]interface{}, column, clauseType string, fromValue interface{}, toValue interface{}) {
-	if strings.Count(*stmt, tag) > 0 {
-		*stmt += " " + clauseType
-	} else {
-		*stmt += " " + tag
+// appendCond writes " <clauseType> <cond>" or " <cond>" handling the special
+// case where clauseType ends with "(" (scope opener) so no extra space is added
+// inside the parenthesis.
+func appendCond(stmt *string, clauseType, cond string) {
+	if clauseType == "" {
+		*stmt += " " + cond
+		return
 	}
-	*stmt += fmt.Sprintf(" %s $%d and $%d", column, len(*args)+1, len(*args)+2)
+	if strings.HasSuffix(clauseType, "(") {
+		*stmt += " " + clauseType + cond // e.g. " or (column=$N"
+	} else {
+		*stmt += " " + clauseType + " " + cond // e.g. " or column=$N"
+	}
+}
+
+func betweenFilter(stmt *string, args *[]interface{}, column, clauseType string, fromValue interface{}, toValue interface{}) {
+	appendCond(stmt, clauseType, fmt.Sprintf("%s $%d and $%d", column, len(*args)+1, len(*args)+2))
 	*args = append(*args, fromValue, toValue)
 }
 
-func nullableFilter(stmt *string, tag, column string, clauseType string) {
-	if strings.Count(*stmt, tag) > 0 {
-		*stmt += fmt.Sprintf(" %s %s", clauseType, column)
-	} else {
-		*stmt += fmt.Sprintf(" %s %s", tag, column)
-	}
+func nullableFilter(stmt *string, column string, clauseType string) {
+	appendCond(stmt, clauseType, column)
 }
 
-func rangeFilter(stmt *string, tag string, args *[]interface{}, column, clauseType string, values ...any) {
-	if strings.Count(*stmt, tag) > 0 {
-		*stmt += fmt.Sprintf(" %s %s (", clauseType, column)
-	} else {
-		*stmt += fmt.Sprintf(" %s %s (", tag, column)
-	}
+func rangeFilter(stmt *string, args *[]interface{}, column, clauseType string, values ...any) {
+	appendCond(stmt, clauseType, fmt.Sprintf("%s (", column))
 	values = mergeSliceValue(values)
 	for k, v := range values {
 		*stmt += fmt.Sprintf("$%d", len(*args)+1)
@@ -91,16 +90,11 @@ func rangeFilter(stmt *string, tag string, args *[]interface{}, column, clauseTy
 	*stmt += ")"
 }
 
-func expressionFilter(stmt *string, tag string, args *[]interface{}, column, clauseType string, value interface{}) {
-	if strings.Count(*stmt, tag) > 0 {
-		*stmt += " " + clauseType
-	} else {
-		*stmt += " " + tag
-	}
+func expressionFilter(stmt *string, args *[]interface{}, column, clauseType string, value interface{}) {
 	if value != nil {
-		*stmt += fmt.Sprintf(" %s $%d", column, len(*args)+1)
+		appendCond(stmt, clauseType, fmt.Sprintf("%s $%d", column, len(*args)+1))
 		*args = append(*args, value)
 	} else {
-		*stmt += fmt.Sprintf(" %s null", column)
+		appendCond(stmt, clauseType, column+" null")
 	}
 }
